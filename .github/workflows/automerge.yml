@@ -15,7 +15,7 @@ jobs:
       env:
         TARGET_BRANCH: main
         IGNORE_AUTOMERGE_ON_BRANCHES: main,master,develop
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }} # generate on https://github.com/settings/tokens
         BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
         DEFAULT_USER_MENTION: "@main-developer"
       run: |
