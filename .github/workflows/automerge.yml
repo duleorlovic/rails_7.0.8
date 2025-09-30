@@ -1,0 +1,41 @@
+name: Auto Merge
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: AutoMergeStep
+      env:
+        TARGET_BRANCH: main
+        IGNORE_AUTOMERGE_ON_BRANCHES: main,master,develop
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+        DEFAULT_USER_MENTION: "@main-developer"
+      run: |
+        commit_message=$(git log -1 --pretty=%B)
+        if [[ ! $IGNORE_AUTOMERGE_ON_BRANCHES == *$BRANCH_NAME* ]]; then
+          if [[ $commit_message == *"automerge"* ]]; then
+            if [[ -z "$(gh pr list --head $BRANCH_NAME)" ]]; then
+              echo "No PR exists for $BRANCH_NAME so creating PR: gh pr create --fill --base $TARGET_BRANCH --head $BRANCH_NAME"
+              git fetch origin $TARGET_BRANCH:$TARGET_BRANCH
+              gh pr create --fill --base $TARGET_BRANCH --head $BRANCH_NAME
+            fi
+            echo "Automerge found: gh pr merge --rebase --admin"
+            gh pr merge --rebase --admin
+            pr_number=$(gh pr list --head $BRANCH_NAME --json number --jq '.[0].number')
+            if [ -n "$DEFAULT_USER_MENTION" ]; then
+              gh pr comment $pr_number --body "Automerge completed successfully. $DEFAULT_USER_MENTION"
+            fi
+          else
+            echo "No automerge in commit message"
+          fi
+        else
+          echo "No automerge in on $TARGET_BRANCH branch"
+        fi
