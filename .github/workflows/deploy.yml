@@ -15,4 +15,6 @@ jobs:
         run: |
           echo head_ref= ${{ github.head_ref }}
           echo ref_name= ${{ github.ref_name }}
+          echo "Branch name: ${{ github.ref_name }}"
+          echo branch_name= ${{ github.ref_name }}
 
